@@ -2,6 +2,9 @@
 
 Registry is a document management system that helps you organize and track your important documents. Whether it's letters, contracts, or receipts - keep everything in one place.
 
+<img width="1919" height="947" alt="image" src="https://github.com/user-attachments/assets/35ff2530-d06e-49d0-8396-6ff51c2aefa5" />
+
+
 ## Features
 
 - **File Uploads** - Upload any type of file (PDF, images, documents)
@@ -49,7 +52,9 @@ Now open `http://localhost:8000` in your browser.
 
 ## Screenshot
 
-![Registry](https://user-images.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/screenshot.png)
+<img width="1919" height="947" alt="image" src="https://github.com/user-attachments/assets/0124e3ca-6ce0-4ecf-9db7-f9b5f6f60b7c" />
+
+
 
 ## License
 
