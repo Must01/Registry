@@ -22,7 +22,7 @@
          @auth
             <a href="{{ url('/registry') }}"
                 class="px-5 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition text-sm font-medium">
-                Go to Dashboard
+                Go to Registry
             </a>
         @else
             <a href="{{ route('login') }}"
@@ -58,7 +58,7 @@
                     @auth
                         <a href="{{ route('registry.index') }}"
                             class="px-8 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium">
-                            Go to Dashboard
+                            Go to Registry
                         </a>
                     @else
                         <a href="{{ route('register') }}"
