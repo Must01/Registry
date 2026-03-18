@@ -21,6 +21,8 @@ jobs:
           key: composer-${{ hashFiles('composer.lock') }}
       - name: Install Dependencies
         run: composer install
+      - name: generate the .env file
+        run: cp .env.example .env
       - name: Generate Laravel Key
         run: php artisan key:generate
       - name: Run tests
