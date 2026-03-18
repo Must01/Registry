@@ -5,7 +5,6 @@ namespace Tests\Feature\Registry;
 use App\Models\Registry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class RegistryTest extends TestCase
@@ -15,6 +14,13 @@ class RegistryTest extends TestCase
     /**
      * Tests For Guest User
      */
+    public function test_guest_cannot_view_registries(): void
+    {
+        $response = $this->get("/registry");
+
+        $response->assertRedirect('/login');
+    }
+
     public function test_guest_cannot_create_registry(): void
     {
         $response = $this->get('/registry/create');
@@ -27,6 +33,16 @@ class RegistryTest extends TestCase
         $response = $this->post('/registry', ['reference_no' => 'REG-001']);
 
         $response->assertRedirect("/login");
+    }
+
+    public function test_guest_cannot_delete_registry(): void
+    {
+        $user = User::factory()->create();
+        $registry = Registry::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->delete("/registry/" . $registry->id);
+
+        $response->assertRedirect('/login');
     }
 
     /**
@@ -141,5 +157,22 @@ class RegistryTest extends TestCase
         $response = $this->actingAs($userB)->delete("/registry/" . $registry->id);
 
         $response->assertStatus(403);
+    }
+
+    /**
+     * Validation tests
+     */
+    public function test_user_cannot_create_empty_registry(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/registry', [
+            'reference_no' => '',
+            'date' => '',
+            'sender' => ''
+        ]);
+
+        $this->assertDatabaseMissing("registries", ['reference_no' => '']);
+        $response->assertSessionHasErrors('reference_no');
     }
 }

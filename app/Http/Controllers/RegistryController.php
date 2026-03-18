@@ -54,8 +54,8 @@ class RegistryController extends Controller
     {
         $validatedData = $request->validate([
             'reference_no' => 'required|string|max:255',
-            'date' => 'nullable|date',
-            'sender' => 'nullable|string|max:255',
+            'date' => 'required|date',
+            'sender' => 'required|string|max:255',
             'recipient' => 'nullable|string|max:255',
             'subject' => 'nullable|string|max:1000',
             'remarks' => 'nullable|string',
@@ -116,8 +116,8 @@ class RegistryController extends Controller
 
         $validatedData = $request->validate([
             'reference_no' => 'required|string|max:255',
-            'date' => 'nullable|date',
-            'sender' => 'nullable|string|max:255',
+            'date' => 'required|date',
+            'sender' => 'required|string|max:255',
             'recipient' => 'nullable|string|max:255',
             'subject' => 'nullable|string|max:1000',
             'remarks' => 'nullable|string',
