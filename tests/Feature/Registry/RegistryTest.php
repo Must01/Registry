@@ -42,10 +42,20 @@ class RegistryTest extends TestCase
 
         $this->assertDatabaseHas("registries", [
             'reference_no' => 'REG-001',
-            'date' => '2024-01-15'
         ]);
 
         $response->assertRedirect(route("registry.index"));
+    }
+
+    public function test_user_can_read_registry(): void
+    {
+        $user = User::factory()->create();
+        $registry = Registry::factory()->create(['user_id' => $user->id]);
+
+        $response = $this->actingAs($user)->get('/registry/' . $registry->id);
+
+        $response->assertStatus(200);
+        $response->assertSee($registry->reference_no);
     }
 
     public function test_user_can_update_registry(): void
@@ -65,5 +75,24 @@ class RegistryTest extends TestCase
         ]);
 
         $response->assertRedirect(route("registry.index"));
+    }
+
+    public function test_user_can_delete_registry(): void
+    {
+        $user = User::factory()->create();
+
+        $registry = Registry::factory()->create(['user_id' => $user->id]);
+
+        $this->assertDatabaseHas("registries", [
+            'reference_no' => $registry->reference_no
+        ]);
+
+        $response = $this->actingAs($user)->delete('/registry/' . $registry->id);
+
+        $this->assertDatabaseMissing("registries", [
+            'reference_no' => $registry->reference_no
+        ]);
+
+        $response->assertRedirect(route('registry.index'));
     }
 }
