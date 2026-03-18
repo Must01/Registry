@@ -12,6 +12,9 @@ class RegistryTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Tests For Guest User
+     */
     public function test_guest_cannot_create_registry(): void
     {
         $response = $this->get('/registry/create');
@@ -26,6 +29,9 @@ class RegistryTest extends TestCase
         $response->assertRedirect("/login");
     }
 
+    /**
+     * Tests For AUTH user Registry CRUD
+     */
     public function test_user_can_create_registry(): void
     {
         $user = User::factory()->create();
@@ -94,5 +100,46 @@ class RegistryTest extends TestCase
         ]);
 
         $response->assertRedirect(route('registry.index'));
+    }
+
+    /**
+     * Tests For Unauthorized Registry Actions
+     */
+    public function test_user_cannot_view_other_users_registry(): void
+    {
+        $userA = User::factory()->create(["name" => "userA"]);
+        $userB = User::factory()->create(["name" => "userB"]);
+
+        $registry = Registry::factory()->create(["user_id" => $userA->id]);
+
+        $response = $this->actingAs($userB)->get("/registry/" . $registry->id);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_user_cannot_update_other_users_registry(): void
+    {
+        $userA = User::factory()->create(["name" => "userA"]);
+        $userB = User::factory()->create(["name" => "userB"]);
+
+        $registry = Registry::factory()->create(["user_id" => $userA->id]);
+
+        $response = $this->actingAs($userB)->put('/registry/' . $registry->id, [
+            "reference_no" => "UPDATED_0000"
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_user_cannot_delete_other_users_registry(): void
+    {
+        $userA = User::factory()->create(["name" => "userA"]);
+        $userB = User::factory()->create(["name" => "userB"]);
+
+        $registry = Registry::factory()->create(["user_id" => $userA->id]);
+
+        $response = $this->actingAs($userB)->delete("/registry/" . $registry->id);
+
+        $response->assertStatus(403);
     }
 }
