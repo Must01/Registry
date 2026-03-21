@@ -1,0 +1,49 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.EC2_IP }}
+          USER: ${{ secrets.EC2_USER }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST '
+            cd /var/www/html
+            git pull
+
+            # Create .env file with APP_KEY
+            cat > .env << EOF
+            APP_KEY=$APP_KEY
+            APP_ENV=production
+            APP_DEBUG=false
+            DB_CONNECTION=mysql
+            DB_HOST=mysql
+            DB_PORT=3306
+            DB_DATABASE=Registry
+            DB_USERNAME=root
+            DB_PASSWORD=password
+            SESSION_DRIVER=file
+            EOF
+
+
+            # Build and start containers
+            docker compose down
+            docker compose up -d --build
+
+            # Run migrations
+            docker compose exec -T registry php artisan storage:link
+            docker compose exec -T registry php artisan migrate --force
+          '
