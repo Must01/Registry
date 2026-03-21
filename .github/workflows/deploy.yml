@@ -18,13 +18,22 @@ jobs:
           HOST: ${{ secrets.EC2_IP }}
           USER: ${{ secrets.EC2_USER }}
           APP_KEY: ${{ secrets.APP_KEY }}
+          REPO_URL: ${{ github.repository_url }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST '
-            cd /var/www/html
+            APP_DIR="/home/$USER/registry"
+
+            # First time setup: clone repo
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "Cloning repo for the first time..."
+              git clone $REPO_URL $APP_DIR
+            fi
+
+            cd $APP_DIR
             git pull
 
-            # Create .env file with APP_KEY
+            # Create .env file
             cat > .env << EOF
             APP_KEY=$APP_KEY
             APP_ENV=production
@@ -38,12 +47,14 @@ jobs:
             SESSION_DRIVER=file
             EOF
 
-
             # Build and start containers
-            docker compose down
-            docker compose up -d --build
+            docker compose down 2>/dev/null || true
+            docker compose up -d --build --remove-orphans
+
+            # Wait for MySQL
+            sleep 10
 
             # Run migrations
-            docker compose exec -T registry php artisan storage:link
-            docker compose exec -T registry php artisan migrate --force
+            docker compose exec -T registry php artisan storage:link || true
+            docker compose exec -T registry php artisan migrate --force || true
           '
