@@ -18,7 +18,7 @@ jobs:
           HOST: ${{ secrets.EC2_IP }}
           USER: ${{ secrets.EC2_USER }}
           APP_KEY: ${{ secrets.APP_KEY }}
-          REPO_URL: ${{ github.repository_url }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST '
