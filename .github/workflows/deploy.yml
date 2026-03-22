@@ -13,29 +13,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to EC2
-        env:
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.EC2_IP }}
-          USER: ${{ secrets.EC2_USER }}
-          APP_KEY: ${{ secrets.APP_KEY }}
-          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
-        run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST '
-            APP_DIR="/home/$USER/registry"
-
-            # First time setup: clone repo
-            if [ ! -d "$APP_DIR/.git" ]; then
-              echo "Cloning repo for the first time..."
-              git clone $REPO_URL $APP_DIR
-            fi
-
-            cd $APP_DIR
-            git pull
-
-            # Create .env file
-            cat > .env << EOF
-            APP_KEY=$APP_KEY
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/registry
+            cd /home/ubuntu/registry
+            git clone https://github.com/Must01/Registry.git . || git pull
+            cat > .env << 'EOF'
+            APP_KEY=${{ secrets.APP_KEY }}
             APP_ENV=production
             APP_DEBUG=false
             DB_CONNECTION=mysql
@@ -46,15 +34,8 @@ jobs:
             DB_PASSWORD=password
             SESSION_DRIVER=file
             EOF
-
-            # Build and start containers
             docker compose down 2>/dev/null || true
-            docker compose up -d --build --remove-orphans
-
-            # Wait for MySQL
+            docker compose up -d --build
             sleep 10
-
-            # Run migrations
             docker compose exec -T registry php artisan storage:link || true
             docker compose exec -T registry php artisan migrate --force || true
-          '
